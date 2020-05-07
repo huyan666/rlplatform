@@ -9,7 +9,7 @@ from STATICTHREATEN import *
 
 class ENVIROMENT:
 
-    def __init__(self, x, y, attacknums, scoutnums, jammernums, thermalnums, radarnums, adknums, aagnums, dynamicnums):
+    def __init__(self, x, y, attacknums, scoutnums, jammernums, thermalnums, radarnums, adknums, aagnums, enemyattacknums,enemyscoutnums):
         self.mapsize_x = x
         self.mapsize_y = y
 
@@ -21,7 +21,9 @@ class ENVIROMENT:
         self.radarnums = radarnums
         self.adknums = adknums
         self.aagnums = aagnums
-        self.dynamicnums = dynamicnums
+
+        self.enemyattacknums=enemyattacknums
+        self.enemyscoutnums=enemyscoutnums
 
         self.planegroup = pygame.sprite.Group()
         self.staticgroup = pygame.sprite.Group()
@@ -90,11 +92,37 @@ class ENVIROMENT:
             staticid += 1
             self.staticgroup.add(b)
 
+        dynamicid=0
+        for i in range(self.enemyattacknums):
+            x = random.randint(0, self.mapsize_x)
+            y = random.randint(0, self.mapsize_y)
+            # AttackPlane(self, id, x, y, r, h, vel, damage, damagerate):
+            a = EnemyAttackPlane(dynamicid, x, y, 20, 10, 10, 100, 0.8)
+            dynamicid+=1
+            self.dynamicgroup.add(a)
+        for i in range(self.enemyscoutnums):
+            x = random.randint(0, self.mapsize_x)
+            y = random.randint(0, self.mapsize_y)
+            # AttackPlane(self, id, x, y, r, h, vel, damage, damagerate):
+            a = EnemyScoutPlane(dynamicid, x, y, 20, 10, 10)
+            dynamicid += 1
+            self.dynamicgroup.add(a)
+        for i in range(self.enemyscoutnums):
+            x = random.randint(0, self.mapsize_x)
+            y = random.randint(0, self.mapsize_y)
+            # AttackPlane(self, id, x, y, r, h, vel, damage, damagerate):
+            a = AttackPlane(dynamicid, x, y, 20, 10, 10, 100, 0.8)
+            dynamicid+=1
+            self.dynamicgroup.add(a)
+
         for i in self.planegroup.sprites():
             i.setgroup(self.planegroup, self.staticgroup, self.dynamicgroup)
 
         for i in self.staticgroup.sprites():
             i.setgroup(self.planegroup)
+
+        for i in self.dynamicgroup.sprites():
+            i.setgroup(self.planegroup, self.staticgroup, self.dynamicgroup)
 
     # 产生ignoreplaneid 和 attackignplaneid
     def firststep(self):
@@ -118,11 +146,11 @@ class ENVIROMENT:
                     else:
                         i.act(j)
         for i in self.staticgroup.sprites():
-            i.act(self.attackignplaneid)
+            i.act(self.attackignplaneid, self.ignoreplaneid)
         for i in self.dynamicgroup.sprites():
             for j in side2_action:
                 if j["ID"] == i.iid:
-                    i.act(j)
+                    i.act(j, self.ignoreplaneid, self.attackignplaneid)
 
         self.FPSCLOCK.tick(30)
         self.handle_event()

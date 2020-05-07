@@ -38,8 +38,6 @@ class BASEPLANE(pygame.sprite.Sprite):
         self.dynamicgroup = dynamicgroup
         self.planegroup = planegroup
 
-    def get_obs(self):
-        return
 
 
 class AttackPlane(BASEPLANE):
@@ -213,6 +211,77 @@ class ThermalPlane(BASEPLANE):
                 dynamic_obs["POS"] = [i.x, i.y, i.h]
                 threaten_obs.append(dynamic_obs)
         plan_obs["THREAT"] = threaten_obs
+        return plan_obs
+
+
+class EnemyAttackPlane(BASEPLANE):
+    def __init__(self, iid, x, y, h, r, vel, damage, damagerate):
+        super(EnemyAttackPlane, self).__init__(iid, x, y, h, r, vel)
+        self.damage = damage
+        self.damagerate = damagerate
+        self.type = "EnemyAttackPlane"
+
+    def act(self, action, attackignplaneid):
+        self.moveto(action)
+        if action["ATTACK_TYPE"] in ["AttackPlane", "ScoutPlane", "JammerPlane", "ThermalPlane"] and action[
+            "ATTACK_ID"] >= 0:
+            for i in self.planegroup.sprites():
+                if i.iid == action["ATTACK_ID"] and i.iid not in attackignplaneid:
+                    if random.randint(0, 100) < (self.damagerate * 100):
+                        i.hp = i.hp - self.damage
+                        if i.hp < 0:
+                            i.kill()
+
+    def get_obs(self, ignoreplaneid):
+        plan_obs = {}
+        plan_obs["ID"] = self.iid
+        plan_obs["TYPE"] = self.type
+        plan_obs["POS"] = [self.x, self.y, self.h]
+        plan_obs["VEL"] = self.vel
+        plan_obs["RADIUS"] = self.r
+        plan_obs["DAMAGE"] = self.damage
+        plan_obs["DAMAGERATE"] = self.damagerate
+
+        threaten_obs = []
+        for i in self.planegroup.sprites():
+            if i.iid in ignoreplaneid:
+                continue
+            dis = ((self.x - i.x) ** 2 + (self.y - i.y) ** 2) ** 0.5
+            if dis < self.r:
+                static_obs = {}
+                static_obs["ID"] = i.iid
+                static_obs["TYPE"] = i.type
+                static_obs["POS"] = [i.x, i.y, i.h]
+                threaten_obs.append(static_obs)
+        plan_obs["planee"] = threaten_obs
+        return plan_obs
+
+
+class EnemyScoutPlane(BASEPLANE):
+    def __init__(self, iid, x, y, h, r, vel):
+        super(EnemyScoutPlane, self).__init__(iid, x, y, h, r, vel)
+        self.type = "EnemyScoutPlane"
+
+    def get_obs(self, ignoreplaneid):
+        plan_obs = {}
+        plan_obs["ID"] = self.iid
+        plan_obs["TYPE"] = self.type
+        plan_obs["POS"] = [self.x, self.y, self.h]
+        plan_obs["VEL"] = self.vel
+        plan_obs["RADIUS"] = self.r
+
+        threaten_obs = []
+        for i in self.planegroup.sprites():
+            if i.iid in ignoreplaneid:
+                continue
+            dis = ((self.x - i.x) ** 2 + (self.y - i.y) ** 2) ** 0.5
+            if dis < self.r:
+                static_obs = {}
+                static_obs["ID"] = i.iid
+                static_obs["TYPE"] = i.type
+                static_obs["POS"] = [i.x, i.y, i.h]
+                threaten_obs.append(static_obs)
+        plan_obs["planee"] = threaten_obs
         return plan_obs
 
 

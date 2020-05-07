@@ -29,7 +29,7 @@ class StaticThreaten(pygame.sprite.Sprite):
     def setgroup(self, planegroup):
         self.planegroup = planegroup
 
-    def act(self,attackignplaneid):
+    def act(self, attackignplaneid):
         return
 
 
@@ -93,11 +93,11 @@ class ADK(StaticThreaten):
         adk_obs["PLANE"] = target
         return adk_obs
 
-    def act(self, attackignplaneid):
+    def act(self, attackignplaneid, ignoreplaneid):
         for i in self.planegroup.sprites():
             if i.h > self.r:
                 continue
-            if i.iid in attackignplaneid:
+            if i.iid in attackignplaneid or i.iid in ignoreplaneid:
                 continue
             dis = ((self.x - i.x) ** 2 + (self.y - i.y) ** 2) ** 0.5
             if dis < self.dmax:
@@ -142,11 +142,11 @@ class AAG(StaticThreaten):
         aag_obs["PLANE"] = target
         return aag_obs
 
-    def act(self, attackplaneid):
+    def act(self, attackignplaneid, ignoreplaneid):
         for i in self.planegroup.sprites():
             if i.h > self.r:
                 continue
-            if i.iid in attackplaneid:
+            if i.iid in attackignplaneid or i.iid in ignoreplaneid:
                 continue
             dis = ((self.x - i.x) ** 2 + (self.y - i.y) ** 2) ** 0.5
             if dis < self.dmax:
