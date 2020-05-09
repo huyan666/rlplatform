@@ -9,7 +9,8 @@ from STATICTHREATEN import *
 
 class ENVIROMENT:
 
-    def __init__(self, x, y, attacknums, scoutnums, jammernums, thermalnums, radarnums, adknums, aagnums, enemyattacknums,enemyscoutnums):
+    def __init__(self, x, y, attacknums, scoutnums, jammernums, thermalnums, radarnums, adknums, aagnums,
+                 enemyattacknums, enemyscoutnums):
         self.mapsize_x = x
         self.mapsize_y = y
 
@@ -22,8 +23,8 @@ class ENVIROMENT:
         self.adknums = adknums
         self.aagnums = aagnums
 
-        self.enemyattacknums=enemyattacknums
-        self.enemyscoutnums=enemyscoutnums
+        self.enemyattacknums = enemyattacknums
+        self.enemyscoutnums = enemyscoutnums
 
         self.planegroup = pygame.sprite.Group()
         self.staticgroup = pygame.sprite.Group()
@@ -38,34 +39,30 @@ class ENVIROMENT:
         self.attackignplaneid = []  # 攻击忽略的飞机
         planeid = 0
         for i in range(self.attacknums):
-            x = random.randint(0, self.mapsize_x)
+            x = random.randint(0, self.mapsize_x/2)
             y = random.randint(0, self.mapsize_y)
-            # AttackPlane(self, id, x, y, r, h, vel, damage, damagerate):
-            a = AttackPlane(planeid, x, y, 20, 10, 10, 100, 0.8)
+            a = AttackPlane(planeid, x, y, 10, 20, 5, 100, 0.8)
             planeid += 1
             self.planegroup.add(a)
 
         for i in range(self.scoutnums):
-            x = random.randint(0, self.mapsize_x)
+            x = random.randint(0, self.mapsize_x/2)
             y = random.randint(0, self.mapsize_y)
-            # AttackPlane(self, id, x, y, r, h, vel, damage, damagerate):
-            a = ScoutPlane(planeid, x, y, 20, 10, 10)
+            a = ScoutPlane(planeid, x, y, 10, 100, 5)
             planeid += 1
             self.planegroup.add(a)
 
         for i in range(self.jammernums):
-            x = random.randint(0, self.mapsize_x)
+            x = random.randint(0, self.mapsize_x/2)
             y = random.randint(0, self.mapsize_y)
-            # AttackPlane(self, id, x, y, r, h, vel, damage, damagerate):
-            a = JammerPlane(planeid, x, y, 20, 10, 10)
+            a = JammerPlane(planeid, x, y, 10, 20, 5)
             planeid += 1
             self.planegroup.add(a)
 
         for i in range(self.attacknums):
-            x = random.randint(0, self.mapsize_x)
+            x = random.randint(0, self.mapsize_x/2)
             y = random.randint(0, self.mapsize_y)
-            # AttackPlane(self, id, x, y, r, h, vel, damage, damagerate):
-            a = ThermalPlane(planeid, x, y, 20, 10, 10)
+            a = ThermalPlane(planeid, x, y, 10, 20, 5)
             planeid += 1
             self.planegroup.add(a)
 
@@ -92,27 +89,19 @@ class ENVIROMENT:
             staticid += 1
             self.staticgroup.add(b)
 
-        dynamicid=0
+        dynamicid = 0
         for i in range(self.enemyattacknums):
-            x = random.randint(0, self.mapsize_x)
+            x = random.randint(self.mapsize_x/2, self.mapsize_x)
             y = random.randint(0, self.mapsize_y)
-            # AttackPlane(self, id, x, y, r, h, vel, damage, damagerate):
-            a = EnemyAttackPlane(dynamicid, x, y, 20, 10, 10, 100, 0.8)
-            dynamicid+=1
-            self.dynamicgroup.add(a)
-        for i in range(self.enemyscoutnums):
-            x = random.randint(0, self.mapsize_x)
-            y = random.randint(0, self.mapsize_y)
-            # AttackPlane(self, id, x, y, r, h, vel, damage, damagerate):
-            a = EnemyScoutPlane(dynamicid, x, y, 20, 10, 10)
+            a = EnemyAttackPlane(dynamicid, x, y, 10, 20, 10, 100, 0.8)
             dynamicid += 1
             self.dynamicgroup.add(a)
+
         for i in range(self.enemyscoutnums):
-            x = random.randint(0, self.mapsize_x)
+            x = random.randint(self.mapsize_x/2, self.mapsize_x)
             y = random.randint(0, self.mapsize_y)
-            # AttackPlane(self, id, x, y, r, h, vel, damage, damagerate):
-            a = AttackPlane(dynamicid, x, y, 20, 10, 10, 100, 0.8)
-            dynamicid+=1
+            a = EnemyScoutPlane(dynamicid, x, y, 10, 20, 10)
+            dynamicid += 1
             self.dynamicgroup.add(a)
 
         for i in self.planegroup.sprites():
@@ -126,7 +115,7 @@ class ENVIROMENT:
 
     # 产生ignoreplaneid 和 attackignplaneid
     def firststep(self):
-        planaction = {"VEL_x": 0, "VEL_y": 0, "ATTACK_TYPE": "RADAR", "ATTACK_ID": -100}
+        planaction = {"DIRECTION": 90, "ATTACK_TYPE": "RADAR", "ATTACK_ID": -100}
         for i in self.planegroup.sprites():
             if i.type is "JammerPlane":
                 i.act(planaction, self.ignoreplaneid)
@@ -145,9 +134,12 @@ class ENVIROMENT:
                         i.act(j, self.attackignplaneid)
                     else:
                         i.act(j)
+
         for i in self.staticgroup.sprites():
             i.act(self.attackignplaneid, self.ignoreplaneid)
         for i in self.dynamicgroup.sprites():
+            if side2_action is None:
+                continue
             for j in side2_action:
                 if j["ID"] == i.iid:
                     i.act(j, self.ignoreplaneid, self.attackignplaneid)
@@ -155,10 +147,15 @@ class ENVIROMENT:
         self.FPSCLOCK.tick(30)
         self.handle_event()
         self.DISPLAYSURE.fill((255, 255, 255))
+
         self.planegroup.update()
         self.planegroup.draw(self.DISPLAYSURE)
+
         self.staticgroup.update()
         self.staticgroup.draw(self.DISPLAYSURE)
+
+        self.dynamicgroup.update()
+        self.dynamicgroup.draw(self.DISPLAYSURE)
         pygame.display.flip()
 
     def get_obs(self):
@@ -182,12 +179,16 @@ class ENVIROMENT:
                 sys.exit()
 
 
+def get_angel(x1, y1, x2, y2):
+    return math.atan2(y2 - y1, x2 - x1)
+
+'''
 if __name__ == "__main__":
-    env = ENVIROMENT(1080, 800, 1, 1, 1, 1, 1, 1, 1, 0)
+    env = ENVIROMENT(800, 800, 1, 1, 1, 1, 1, 1, 1, 1, 1)
     static = (env.staticgroup.sprites())[0]
     action = []
-    planaction = {"ID": 2, "VEL_x": -1, "VEL_y": 1, "ATTACK_TYPE": "RADAR", "ATTACK_ID": -100}
-    planaction2 = {"ID": 3, "VEL_x": -1, "VEL_y": 1, "ATTACK_TYPE": "RADAR", "ATTACK_ID": -100}
+    planaction = {"ID": 2, "DIRECTION": math.radians(0), "ATTACK_TYPE": "RADAR", "ATTACK_ID": -100}
+    planaction2 = {"ID": 3, "DIRECTION": math.radians(0), "ATTACK_TYPE": "RADAR", "ATTACK_ID": -100}
     action.append(planaction)
     action.append(planaction2)
     env.firststep()
@@ -196,22 +197,21 @@ if __name__ == "__main__":
         env.FPSCLOCK.tick(30)
         k, j = env.get_obs()
         print(k)
-        print(j)
         pos = k[2]["POS"]
-        dx = round((static.x - pos[0]) / k[2]["VEL"])
-        dy = round((static.y - pos[1]) / k[2]["VEL"])
-        planaction["VEL_x"] = dx
-        planaction["VEL_y"] = dy
+        print(k[2])
+        planaction["DIRECTION"] = math.atan2(static.y - pos[1], static.x - pos[0])
+        print(planaction)
 
         pos = k[3]["POS"]
-        dx = round((static.x - pos[0]) / k[3]["VEL"])
-        dy = round((static.y - pos[1]) / k[3]["VEL"])
-        planaction2["VEL_x"] = dx
-        planaction2["VEL_y"] = dy
+
+        planaction2["DIRECTION"] = math.atan2(static.y - pos[1], static.x - pos[0])
+        print("angel")
+        print(math.degrees(planaction2["DIRECTION"]))
+        print(planaction2)
 
         action = []
-        print(planaction)
         action.append(planaction)
         action.append(planaction2)
 
         env.step(action, None)
+'''

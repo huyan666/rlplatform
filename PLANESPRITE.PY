@@ -19,19 +19,25 @@ class BASEPLANE(pygame.sprite.Sprite):
         self.h = h
         self.rect.center = (self.x, self.y)
         self.hp = 100
-        self.direction = 1
+        self.direction = math.radians(0)
         self.lock = threading.Lock()
         self.screen = pygame.display.get_surface()
 
     def update(self):
         self.lock.acquire(timeout=1)
         self.rect.center = (self.x, self.y)
-        pygame.draw.circle(self.screen, (255, 0, 0), (self.x, self.y), self.r, 1)
+        pygame.draw.circle(self.screen, (255, 0, 0), (round(self.x), round(self.y)), self.r, 1)
         self.lock.release()
 
     def moveto(self, action):
-        self.x = self.x + action["VEL_x"]
-        self.y = self.y + action["VEL_y"]
+        direction=action["DIRECTION"]
+        self.direction=direction
+        dx=math.cos(direction)*self.vel
+        dy=math.sin(direction)*self.vel
+        print(direction)
+        print(dx,dy)
+        self.x = self.x + dx
+        self.y = self.y + dy
 
     def setgroup(self, planegroup, staticgroup, dynamicgroup):
         self.staticgroup = staticgroup
@@ -42,7 +48,7 @@ class BASEPLANE(pygame.sprite.Sprite):
 
 class AttackPlane(BASEPLANE):
 
-    def __init__(self, iid, x, y, r, h, vel, damage, damagerate):
+    def __init__(self, iid, x, y, h, r, vel, damage, damagerate):
         super(AttackPlane, self).__init__(iid, x, y, h, r, vel)
         self.damage = damage
         self.damagerate = damagerate
@@ -58,12 +64,20 @@ class AttackPlane(BASEPLANE):
                         i.hp = i.hp - self.damage
                         if i.hp < 0:
                             i.kill()
+        if action["ATTACK_TYPE"] in ["EnemyScoutPlane", "EnemyAttackPlane"] and action["ATTACK_ID"] >= 0:
+            for i in self.dynamicgroup.sprites():
+                if i.iid == action["ATTACK_ID"]:
+                    if random.randint(0, 100) < (self.damagerate * 100):
+                        i.hp = i.hp - self.damage
+                        if i.hp < 0:
+                            i.kill()
 
     def get_obs(self):
         plan_obs = {}
         plan_obs["ID"] = self.iid
         plan_obs["TYPE"] = self.type
         plan_obs["POS"] = [self.x, self.y, self.h]
+        plan_obs["DIRECTION"] = self.direction
         plan_obs["VEL"] = self.vel
         plan_obs["RADIUS"] = self.r
         plan_obs["DAMAGE"] = self.damage
@@ -105,6 +119,7 @@ class ScoutPlane(BASEPLANE):
         plan_obs["ID"] = self.iid
         plan_obs["TYPE"] = self.type
         plan_obs["POS"] = [self.x, self.y, self.h]
+        plan_obs["DIRECTION"] = self.direction
         plan_obs["VEL"] = self.vel
         plan_obs["RADIUS"] = self.r
 
@@ -147,6 +162,7 @@ class JammerPlane(BASEPLANE):
         plan_obs["ID"] = self.iid
         plan_obs["TYPE"] = self.type
         plan_obs["POS"] = [self.x, self.y, self.h]
+        plan_obs["DIRECTION"] = self.direction
         plan_obs["VEL"] = self.vel
         plan_obs["RADIUS"] = self.r
 
@@ -189,6 +205,7 @@ class ThermalPlane(BASEPLANE):
         plan_obs["ID"] = self.iid
         plan_obs["TYPE"] = self.type
         plan_obs["POS"] = [self.x, self.y, self.h]
+        plan_obs["DIRECTION"] = self.direction
         plan_obs["VEL"] = self.vel
         plan_obs["RADIUS"] = self.r
 
@@ -237,6 +254,7 @@ class EnemyAttackPlane(BASEPLANE):
         plan_obs["ID"] = self.iid
         plan_obs["TYPE"] = self.type
         plan_obs["POS"] = [self.x, self.y, self.h]
+        plan_obs["DIRECTION"] = self.direction
         plan_obs["VEL"] = self.vel
         plan_obs["RADIUS"] = self.r
         plan_obs["DAMAGE"] = self.damage
@@ -260,6 +278,7 @@ class EnemyAttackPlane(BASEPLANE):
 class EnemyScoutPlane(BASEPLANE):
     def __init__(self, iid, x, y, h, r, vel):
         super(EnemyScoutPlane, self).__init__(iid, x, y, h, r, vel)
+        print(self.image)
         self.type = "EnemyScoutPlane"
 
     def get_obs(self, ignoreplaneid):
@@ -267,6 +286,7 @@ class EnemyScoutPlane(BASEPLANE):
         plan_obs["ID"] = self.iid
         plan_obs["TYPE"] = self.type
         plan_obs["POS"] = [self.x, self.y, self.h]
+        plan_obs["DIRECTION"] = self.direction
         plan_obs["VEL"] = self.vel
         plan_obs["RADIUS"] = self.r
 

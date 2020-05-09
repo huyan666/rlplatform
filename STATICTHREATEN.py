@@ -29,7 +29,7 @@ class StaticThreaten(pygame.sprite.Sprite):
     def setgroup(self, planegroup):
         self.planegroup = planegroup
 
-    def act(self, attackignplaneid):
+    def act(self, attackignplaneid,ignoreplaneid):
         return
 
 
@@ -70,7 +70,7 @@ class ADK(StaticThreaten):
         self.dmin = dmin
         self.damage = damage
         self.type = "ADK"
-        self.r = hmax
+        self.r = dmax
 
     def get_obs(self, ignoreplaneid):
         adk_obs = {}
@@ -119,7 +119,7 @@ class AAG(StaticThreaten):
         self.dmax = dmax
         self.damage = damage
         self.type = "AAG"
-        self.r = hmax
+        self.r = dmax
 
     def get_obs(self, ignoreplaneid):
         aag_obs = {}
