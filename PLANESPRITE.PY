@@ -29,13 +29,18 @@ class BASEPLANE(pygame.sprite.Sprite):
         pygame.draw.circle(self.screen, (255, 0, 0), (round(self.x), round(self.y)), self.r, 1)
         self.lock.release()
 
+    def rotate(self,direction):
+        self.image = pygame.transform.rotate(self.image, math.degrees(direction))
+        print(self.direction)
+        self.rect = self.image.get_rect(center=self.rect.center)
     def moveto(self, action):
         direction=action["DIRECTION"]
-        self.direction=direction
+        if self.direction !=direction:
+            self.rotate(self.direction-direction)
+            self.direction = direction
+
         dx=math.cos(direction)*self.vel
         dy=math.sin(direction)*self.vel
-        print(direction)
-        print(dx,dy)
         self.x = self.x + dx
         self.y = self.y + dy
 
@@ -60,7 +65,6 @@ class AttackPlane(BASEPLANE):
             for i in self.staticgroup.sprites():
                 if i.iid == action["ATTACK_ID"]:
                     if random.randint(0, 100) < (self.damagerate * 100):
-                        print("attack")
                         i.hp = i.hp - self.damage
                         if i.hp < 0:
                             i.kill()
@@ -271,14 +275,13 @@ class EnemyAttackPlane(BASEPLANE):
                 static_obs["TYPE"] = i.type
                 static_obs["POS"] = [i.x, i.y, i.h]
                 threaten_obs.append(static_obs)
-        plan_obs["planee"] = threaten_obs
+        plan_obs["PLANE"] = threaten_obs
         return plan_obs
 
 
 class EnemyScoutPlane(BASEPLANE):
     def __init__(self, iid, x, y, h, r, vel):
         super(EnemyScoutPlane, self).__init__(iid, x, y, h, r, vel)
-        print(self.image)
         self.type = "EnemyScoutPlane"
 
     def get_obs(self, ignoreplaneid):
@@ -301,8 +304,11 @@ class EnemyScoutPlane(BASEPLANE):
                 static_obs["TYPE"] = i.type
                 static_obs["POS"] = [i.x, i.y, i.h]
                 threaten_obs.append(static_obs)
-        plan_obs["planee"] = threaten_obs
+        plan_obs["PLANE"] = threaten_obs
         return plan_obs
+
+    def act(self, action):
+        self.moveto(action)
 
 
 '''

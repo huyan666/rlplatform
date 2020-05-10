@@ -39,28 +39,28 @@ class ENVIROMENT:
         self.attackignplaneid = []  # 攻击忽略的飞机
         planeid = 0
         for i in range(self.attacknums):
-            x = random.randint(0, self.mapsize_x/2)
+            x = random.randint(0, self.mapsize_x / 2)
             y = random.randint(0, self.mapsize_y)
             a = AttackPlane(planeid, x, y, 10, 20, 5, 100, 0.8)
             planeid += 1
             self.planegroup.add(a)
 
         for i in range(self.scoutnums):
-            x = random.randint(0, self.mapsize_x/2)
+            x = random.randint(0, self.mapsize_x / 2)
             y = random.randint(0, self.mapsize_y)
             a = ScoutPlane(planeid, x, y, 10, 100, 5)
             planeid += 1
             self.planegroup.add(a)
 
         for i in range(self.jammernums):
-            x = random.randint(0, self.mapsize_x/2)
+            x = random.randint(0, self.mapsize_x / 2)
             y = random.randint(0, self.mapsize_y)
             a = JammerPlane(planeid, x, y, 10, 20, 5)
             planeid += 1
             self.planegroup.add(a)
 
         for i in range(self.attacknums):
-            x = random.randint(0, self.mapsize_x/2)
+            x = random.randint(0, self.mapsize_x / 2)
             y = random.randint(0, self.mapsize_y)
             a = ThermalPlane(planeid, x, y, 10, 20, 5)
             planeid += 1
@@ -91,14 +91,14 @@ class ENVIROMENT:
 
         dynamicid = 0
         for i in range(self.enemyattacknums):
-            x = random.randint(self.mapsize_x/2, self.mapsize_x)
+            x = random.randint(self.mapsize_x / 2, self.mapsize_x)
             y = random.randint(0, self.mapsize_y)
             a = EnemyAttackPlane(dynamicid, x, y, 10, 20, 10, 100, 0.8)
             dynamicid += 1
             self.dynamicgroup.add(a)
 
         for i in range(self.enemyscoutnums):
-            x = random.randint(self.mapsize_x/2, self.mapsize_x)
+            x = random.randint(self.mapsize_x / 2, self.mapsize_x)
             y = random.randint(0, self.mapsize_y)
             a = EnemyScoutPlane(dynamicid, x, y, 10, 20, 10)
             dynamicid += 1
@@ -138,11 +138,12 @@ class ENVIROMENT:
         for i in self.staticgroup.sprites():
             i.act(self.attackignplaneid, self.ignoreplaneid)
         for i in self.dynamicgroup.sprites():
-            if side2_action is None:
-                continue
             for j in side2_action:
                 if j["ID"] == i.iid:
-                    i.act(j, self.ignoreplaneid, self.attackignplaneid)
+                    if i.type is "EnemyAttackPlane":
+                        i.act(j, self.attackignplaneid)
+                    else:
+                        i.act(j)
 
         self.FPSCLOCK.tick(30)
         self.handle_event()
@@ -178,40 +179,15 @@ class ENVIROMENT:
                 pygame.quit()
                 sys.exit()
 
-
-def get_angel(x1, y1, x2, y2):
-    return math.atan2(y2 - y1, x2 - x1)
+    def get_done(self):
+        attackplane = [x for x in self.planegroup if x.type is "AttackPlane"]
+        if len(attackplane) == 0:
+            return 1
+        elif len(self.staticgroup.sprites()) == 0 and len(self.dynamicgroup.sprites()) == 0:
+            return 2
+        return 0
 
 '''
-if __name__ == "__main__":
-    env = ENVIROMENT(800, 800, 1, 1, 1, 1, 1, 1, 1, 1, 1)
-    static = (env.staticgroup.sprites())[0]
-    action = []
-    planaction = {"ID": 2, "DIRECTION": math.radians(0), "ATTACK_TYPE": "RADAR", "ATTACK_ID": -100}
-    planaction2 = {"ID": 3, "DIRECTION": math.radians(0), "ATTACK_TYPE": "RADAR", "ATTACK_ID": -100}
-    action.append(planaction)
-    action.append(planaction2)
-    env.firststep()
-
-    while True:
-        env.FPSCLOCK.tick(30)
-        k, j = env.get_obs()
-        print(k)
-        pos = k[2]["POS"]
-        print(k[2])
-        planaction["DIRECTION"] = math.atan2(static.y - pos[1], static.x - pos[0])
-        print(planaction)
-
-        pos = k[3]["POS"]
-
-        planaction2["DIRECTION"] = math.atan2(static.y - pos[1], static.x - pos[0])
-        print("angel")
-        print(math.degrees(planaction2["DIRECTION"]))
-        print(planaction2)
-
-        action = []
-        action.append(planaction)
-        action.append(planaction2)
-
-        env.step(action, None)
+def get_angel(x1, y1, x2, y2):
+    return math.atan2(y2 - y1, x2 - x1)
 '''
