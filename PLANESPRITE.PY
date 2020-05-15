@@ -10,8 +10,10 @@ class BASEPLANE(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
 
         self.image = pygame.image.load("flight.png")
+        self.image = pygame.transform.scale(self.image, (10, 10))
         self.iid = iid
         self.rect = self.image.get_rect()
+        self.env = None
         self.vel = vel
         self.x = x0
         self.y = y0
@@ -22,25 +24,27 @@ class BASEPLANE(pygame.sprite.Sprite):
         self.direction = math.radians(0)
         self.lock = threading.Lock()
         self.screen = pygame.display.get_surface()
+        self.color = (255, 0, 0)
 
     def update(self):
         self.lock.acquire(timeout=1)
         self.rect.center = (self.x, self.y)
-        pygame.draw.circle(self.screen, (255, 0, 0), (round(self.x), round(self.y)), self.r, 1)
+        pygame.draw.circle(self.screen, self.color, (round(self.x), round(self.y)), self.r, 1)
         self.lock.release()
 
-    def rotate(self,direction):
-        self.image = pygame.transform.rotate(self.image, math.degrees(direction))
-        print(self.direction)
+    def rotate(self, direction):#拟以8张图片来代替旋转
+        self.image = pygame.transform.rotate(self.image, math.degrees(direction)).copy()
+        # self.image = pygame.transform.rotozoom(self.image, math.degrees(direction),1)
         self.rect = self.image.get_rect(center=self.rect.center)
+
     def moveto(self, action):
-        direction=action["DIRECTION"]
-        if self.direction !=direction:
-            self.rotate(self.direction-direction)
+        direction = action["DIRECTION"]
+        if self.direction != direction:
+            self.rotate(self.direction - direction)
             self.direction = direction
 
-        dx=math.cos(direction)*self.vel
-        dy=math.sin(direction)*self.vel
+        dx = math.cos(direction) * self.vel
+        dy = math.sin(direction) * self.vel
         self.x = self.x + dx
         self.y = self.y + dy
 
@@ -49,6 +53,26 @@ class BASEPLANE(pygame.sprite.Sprite):
         self.dynamicgroup = dynamicgroup
         self.planegroup = planegroup
 
+    def setenv(self, env):
+        self.env = env
+
+    def get_score(self, target):
+        score = 0
+        if target.type is "RADAR":
+            score = 100
+        elif target.type in ["ADK", "AAG"]:
+            score = 50
+        elif target.type is "EnemyScoutPlane":
+            score = 20
+        elif target.type is "EnemyAttackPlane":
+            score = 10
+        elif target.type is "ScoutPlane":
+            score = -100
+        elif target.type is "AttackPlane":
+            score = -50
+        elif target.type in ["JammerPlane", "ThermalPlane"]:
+            score = -30
+        self.env.score += score
 
 
 class AttackPlane(BASEPLANE):
@@ -67,6 +91,7 @@ class AttackPlane(BASEPLANE):
                     if random.randint(0, 100) < (self.damagerate * 100):
                         i.hp = i.hp - self.damage
                         if i.hp < 0:
+                            self.get_score(i)
                             i.kill()
         if action["ATTACK_TYPE"] in ["EnemyScoutPlane", "EnemyAttackPlane"] and action["ATTACK_ID"] >= 0:
             for i in self.dynamicgroup.sprites():
@@ -74,6 +99,7 @@ class AttackPlane(BASEPLANE):
                     if random.randint(0, 100) < (self.damagerate * 100):
                         i.hp = i.hp - self.damage
                         if i.hp < 0:
+                            self.get_score(i)
                             i.kill()
 
     def get_obs(self):
@@ -114,6 +140,7 @@ class ScoutPlane(BASEPLANE):
     def __init__(self, iid, x, y, h, r, vel):
         super(ScoutPlane, self).__init__(iid, x, y, h, r, vel)
         self.type = "ScoutPlane"
+        self.color = (0, 0, 255)
 
     def act(self, action):
         self.moveto(action)
@@ -153,6 +180,7 @@ class JammerPlane(BASEPLANE):
     def __init__(self, iid, x, y, h, r, vel):
         super(JammerPlane, self).__init__(iid, x, y, h, r, vel)
         self.type = "JammerPlane"
+        self.color = (0, 255, 0)
 
     def act(self, action, ignoreplaneid):
         self.moveto(action)
@@ -196,6 +224,7 @@ class ThermalPlane(BASEPLANE):
     def __init__(self, tid, x, y, h, r, vel):
         super(ThermalPlane, self).__init__(tid, x, y, h, r, vel)
         self.type = "ThermalPlane"
+        self.color = (180, 180, 46)
 
     def act(self, action, attackignplaneid):
         self.moveto(action)
@@ -241,6 +270,7 @@ class EnemyAttackPlane(BASEPLANE):
         self.damage = damage
         self.damagerate = damagerate
         self.type = "EnemyAttackPlane"
+        self.color = (255, 100, 0)
 
     def act(self, action, attackignplaneid):
         self.moveto(action)
@@ -251,6 +281,7 @@ class EnemyAttackPlane(BASEPLANE):
                     if random.randint(0, 100) < (self.damagerate * 100):
                         i.hp = i.hp - self.damage
                         if i.hp < 0:
+                            self.get_score(i)
                             i.kill()
 
     def get_obs(self, ignoreplaneid):
@@ -283,6 +314,7 @@ class EnemyScoutPlane(BASEPLANE):
     def __init__(self, iid, x, y, h, r, vel):
         super(EnemyScoutPlane, self).__init__(iid, x, y, h, r, vel)
         self.type = "EnemyScoutPlane"
+        self.color = (0, 100, 255)
 
     def get_obs(self, ignoreplaneid):
         plan_obs = {}

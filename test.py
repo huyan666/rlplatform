@@ -19,6 +19,9 @@ if __name__ == "__main__":
         flag = env.get_done()
         if flag == 1:
             print("YOU LOSE")
+            print(env.score)
             break
         elif flag == 2:
             print("YOU WIN")
+            print(env.score)
+            break

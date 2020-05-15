@@ -18,19 +18,42 @@ class StaticThreaten(pygame.sprite.Sprite):
         self.h = 0
         self.iid = iid
         self.lock = threading.Lock()
+        self.color = (0, 0, 255)
         self.screen = pygame.display.get_surface()
         self.rect.center = (self.x, self.y)
+        self.env=None
 
     def update(self, *args):
         self.lock.acquire(timeout=1)
-        pygame.draw.circle(self.screen, (255, 0, 0), (self.x, self.y), self.r, 1)
+        pygame.draw.circle(self.screen, self.color, (self.x, self.y), self.r, 1)
         self.lock.release()
 
     def setgroup(self, planegroup):
         self.planegroup = planegroup
 
-    def act(self, attackignplaneid,ignoreplaneid):
+    def setenv(self,env):
+        self.env=env
+
+    def act(self, attackignplaneid, ignoreplaneid):
         return
+
+    def get_score(self, target):
+        score = 0
+        if target.type is "RADAR":
+            score = 100
+        elif target.type in ["ADK", "AAG"]:
+            score = 50
+        elif target.type is "EnemyScoutPlane":
+            score = 20
+        elif target.type is "EnemyAttackPlane":
+            score = 10
+        elif target.type is "ScoutPlane":
+            score = -100
+        elif target.type is "AttackPlane":
+            score = -50
+        elif target.type in ["JammerPlane", "ThermalPlane"]:
+            score = -30
+        self.env.score += score
 
 
 class RADAR(StaticThreaten):
@@ -71,6 +94,10 @@ class ADK(StaticThreaten):
         self.damage = damage
         self.type = "ADK"
         self.r = dmax
+        self.color = (255, 0, 0)
+        self.image = pygame.image.load("adk.png")
+        self.rect = self.image.get_rect()
+        self.rect.center = (self.x, self.y)
 
     def get_obs(self, ignoreplaneid):
         adk_obs = {}
@@ -108,6 +135,7 @@ class ADK(StaticThreaten):
                 '''
                 i.hp = i.hp - self.damage
                 if i.hp < 0:
+                    self.get_score(i)
                     i.kill()
 
 
@@ -120,6 +148,10 @@ class AAG(StaticThreaten):
         self.damage = damage
         self.type = "AAG"
         self.r = dmax
+        self.color = (255, 0, 0)
+        self.image = pygame.image.load("aag.png")
+        self.rect = self.image.get_rect()
+        self.rect.center = (self.x, self. y)
 
     def get_obs(self, ignoreplaneid):
         aag_obs = {}
@@ -156,4 +188,5 @@ class AAG(StaticThreaten):
                 '''
                 i.hp = i.hp - self.damage
                 if i.hp < 0:
+                    self.get_score(i)
                     i.kill()

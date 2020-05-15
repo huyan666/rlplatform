@@ -37,6 +37,7 @@ class ENVIROMENT:
 
         self.ignoreplaneid = []  # 侦察忽略的飞机
         self.attackignplaneid = []  # 攻击忽略的飞机
+        self.score = 0
         planeid = 0
         for i in range(self.attacknums):
             x = random.randint(0, self.mapsize_x / 2)
@@ -59,7 +60,7 @@ class ENVIROMENT:
             planeid += 1
             self.planegroup.add(a)
 
-        for i in range(self.attacknums):
+        for i in range(self.thermalnums):
             x = random.randint(0, self.mapsize_x / 2)
             y = random.randint(0, self.mapsize_y)
             a = ThermalPlane(planeid, x, y, 10, 20, 5)
@@ -106,12 +107,15 @@ class ENVIROMENT:
 
         for i in self.planegroup.sprites():
             i.setgroup(self.planegroup, self.staticgroup, self.dynamicgroup)
+            i.setenv(self)
 
         for i in self.staticgroup.sprites():
             i.setgroup(self.planegroup)
+            i.setenv(self)
 
         for i in self.dynamicgroup.sprites():
             i.setgroup(self.planegroup, self.staticgroup, self.dynamicgroup)
+            i.setenv(self)
 
     # 产生ignoreplaneid 和 attackignplaneid
     def firststep(self):
@@ -176,6 +180,7 @@ class ENVIROMENT:
     def handle_event(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == K_ESCAPE):
+                print(self.score)
                 pygame.quit()
                 sys.exit()
 
@@ -186,6 +191,7 @@ class ENVIROMENT:
         elif len(self.staticgroup.sprites()) == 0 and len(self.dynamicgroup.sprites()) == 0:
             return 2
         return 0
+
 
 '''
 def get_angel(x1, y1, x2, y2):
