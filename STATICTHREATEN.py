@@ -10,6 +10,7 @@ class StaticThreaten(pygame.sprite.Sprite):
     def __init__(self, iid, x, y, hp, r):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.image.load("radar.png")
+        self.image = pygame.transform.scale(self.image, (20, 20))
         self.rect = self.image.get_rect()
         self.x = x
         self.y = y
@@ -18,14 +19,15 @@ class StaticThreaten(pygame.sprite.Sprite):
         self.h = 0
         self.iid = iid
         self.lock = threading.Lock()
-        self.color = (0, 0, 255)
+        self.color = (255, 255, 0, 180)
         self.screen = pygame.display.get_surface()
         self.rect.center = (self.x, self.y)
         self.env=None
 
-    def update(self, *args):
+
+    def update(self, surface):#*args
         self.lock.acquire(timeout=1)
-        pygame.draw.circle(self.screen, self.color, (self.x, self.y), self.r, 1)
+        pygame.draw.circle(surface, self.color, (self.x, self.y), self.r)#self.screen
         self.lock.release()
 
     def setgroup(self, planegroup):
@@ -94,8 +96,9 @@ class ADK(StaticThreaten):
         self.damage = damage
         self.type = "ADK"
         self.r = dmax
-        self.color = (255, 0, 0)
+        self.color = (255, 0, 0, 60)
         self.image = pygame.image.load("adk.png")
+        self.image = pygame.transform.scale(self.image, (20, 20))
         self.rect = self.image.get_rect()
         self.rect.center = (self.x, self.y)
 
@@ -148,8 +151,9 @@ class AAG(StaticThreaten):
         self.damage = damage
         self.type = "AAG"
         self.r = dmax
-        self.color = (255, 0, 0)
+        self.color = (255, 0, 0, 60)
         self.image = pygame.image.load("aag.png")
+        self.image = pygame.transform.scale(self.image, (20, 20))
         self.rect = self.image.get_rect()
         self.rect.center = (self.x, self. y)
 

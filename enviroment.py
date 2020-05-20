@@ -152,7 +152,23 @@ class ENVIROMENT:
         self.FPSCLOCK.tick(30)
         self.handle_event()
         self.DISPLAYSURE.fill((255, 255, 255))
+        #
 
+        surface2=self.DISPLAYSURE.convert_alpha()
+        surface2.fill((255,255,255,0.1))
+
+
+        self.staticgroup.update(surface2)
+        self.staticgroup.draw(surface2)
+
+        self.dynamicgroup.update(surface2)
+        self.dynamicgroup.draw(surface2)
+
+        self.planegroup.update(surface2)
+        # self.planegroup.draw(surface2)
+        self.DISPLAYSURE.blit(surface2,(0,0))
+        #pygame.Surface.blit(surface2,self.DISPLAYSURE)
+        '''
         self.planegroup.update()
         self.planegroup.draw(self.DISPLAYSURE)
 
@@ -161,6 +177,7 @@ class ENVIROMENT:
 
         self.dynamicgroup.update()
         self.dynamicgroup.draw(self.DISPLAYSURE)
+        '''
         pygame.display.flip()
 
     def get_obs(self):

@@ -6,11 +6,12 @@ import math
 
 class BASEPLANE(pygame.sprite.Sprite):
 
-    def __init__(self, iid, x0, y0, h, r, vel):
+    def __init__(self, iid, x0, y0, h, r, vel,image):
         pygame.sprite.Sprite.__init__(self)
 
-        self.image = pygame.image.load("flight.png")
-        self.image = pygame.transform.scale(self.image, (10, 10))
+        self.image = pygame.image.load(image)
+        self.image = pygame.transform.scale(self.image, (20, 20))
+
         self.iid = iid
         self.rect = self.image.get_rect()
         self.env = None
@@ -24,18 +25,23 @@ class BASEPLANE(pygame.sprite.Sprite):
         self.direction = math.radians(0)
         self.lock = threading.Lock()
         self.screen = pygame.display.get_surface()
-        self.color = (255, 0, 0)
+        self.color = (255, 0, 0, 100)
+        #self.image.set_colorkey(self.color)
 
-    def update(self):
+    def update(self,surface):
         self.lock.acquire(timeout=1)
+        self.image.set_colorkey((255,0,0))
+        self.image.set_alpha(0)
         self.rect.center = (self.x, self.y)
-        pygame.draw.circle(self.screen, self.color, (round(self.x), round(self.y)), self.r, 1)
+        pygame.draw.circle(surface, self.color, (round(self.x), round(self.y)), self.r)
+        surface.blit(self.image, self.rect)
         self.lock.release()
 
     def rotate(self, direction):#拟以8张图片来代替旋转
-        self.image = pygame.transform.rotate(self.image, math.degrees(direction)).copy()
+        #self.image = pygame.transform.rotate(self.image, math.degrees(direction)).copy()
         # self.image = pygame.transform.rotozoom(self.image, math.degrees(direction),1)
-        self.rect = self.image.get_rect(center=self.rect.center)
+        #self.rect = self.image.get_rect(center=self.rect.center)=
+        pass
 
     def moveto(self, action):
         direction = action["DIRECTION"]
@@ -78,7 +84,7 @@ class BASEPLANE(pygame.sprite.Sprite):
 class AttackPlane(BASEPLANE):
 
     def __init__(self, iid, x, y, h, r, vel, damage, damagerate):
-        super(AttackPlane, self).__init__(iid, x, y, h, r, vel)
+        super(AttackPlane, self).__init__(iid, x, y, h, r, vel,"attack.png")
         self.damage = damage
         self.damagerate = damagerate
         self.type = "AttackPlane"
@@ -138,9 +144,9 @@ class AttackPlane(BASEPLANE):
 class ScoutPlane(BASEPLANE):
 
     def __init__(self, iid, x, y, h, r, vel):
-        super(ScoutPlane, self).__init__(iid, x, y, h, r, vel)
+        super(ScoutPlane, self).__init__(iid, x, y, h, r, vel,"scout.png")
         self.type = "ScoutPlane"
-        self.color = (0, 0, 255)
+        self.color = (255, 255, 0, 80)
 
     def act(self, action):
         self.moveto(action)
@@ -178,9 +184,9 @@ class ScoutPlane(BASEPLANE):
 
 class JammerPlane(BASEPLANE):
     def __init__(self, iid, x, y, h, r, vel):
-        super(JammerPlane, self).__init__(iid, x, y, h, r, vel)
+        super(JammerPlane, self).__init__(iid, x, y, h, r, vel,"Jammer.png")
         self.type = "JammerPlane"
-        self.color = (0, 255, 0)
+        self.color = (0, 255, 0, 50)
 
     def act(self, action, ignoreplaneid):
         self.moveto(action)
@@ -222,9 +228,9 @@ class JammerPlane(BASEPLANE):
 
 class ThermalPlane(BASEPLANE):
     def __init__(self, tid, x, y, h, r, vel):
-        super(ThermalPlane, self).__init__(tid, x, y, h, r, vel)
+        super(ThermalPlane, self).__init__(tid, x, y, h, r, vel,"thermal.png")
         self.type = "ThermalPlane"
-        self.color = (180, 180, 46)
+        self.color = (255, 0, 255, 50)
 
     def act(self, action, attackignplaneid):
         self.moveto(action)
@@ -266,11 +272,11 @@ class ThermalPlane(BASEPLANE):
 
 class EnemyAttackPlane(BASEPLANE):
     def __init__(self, iid, x, y, h, r, vel, damage, damagerate):
-        super(EnemyAttackPlane, self).__init__(iid, x, y, h, r, vel)
+        super(EnemyAttackPlane, self).__init__(iid, x, y, h, r, vel,"attack.png")
         self.damage = damage
         self.damagerate = damagerate
         self.type = "EnemyAttackPlane"
-        self.color = (255, 100, 0)
+        self.color = (0, 0, 255, 50)
 
     def act(self, action, attackignplaneid):
         self.moveto(action)
@@ -312,9 +318,9 @@ class EnemyAttackPlane(BASEPLANE):
 
 class EnemyScoutPlane(BASEPLANE):
     def __init__(self, iid, x, y, h, r, vel):
-        super(EnemyScoutPlane, self).__init__(iid, x, y, h, r, vel)
+        super(EnemyScoutPlane, self).__init__(iid, x, y, h, r, vel,"scout.png")
         self.type = "EnemyScoutPlane"
-        self.color = (0, 100, 255)
+        self.color = (0, 100, 255, 50)
 
     def get_obs(self, ignoreplaneid):
         plan_obs = {}
